@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Age of Steam — Budget & Auction Planner</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AoS Ledger">
+<link rel="apple-touch-icon" href="https://via.placeholder.com/180/b01818/ffffff?text=AoS">
+
+<style>
+:root {
+--font-display: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+--font-body: Georgia, 'Times New Roman', serif;
+--white: #f5f0e8;
+--offwhite: #ede8de;
+--red: #b01818;
+--red2: #8a1010;
+--red-bg: #c82020;
+--brown: #4a2e10;
+--brown2: #6b4020;
+--brown3: #3a2008;
+--muted: #8a6040;
+--border: #c08060;
+--positive: #1a6a1a;
+--negative: #b01818;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+background: var(--brown3);
+min-height: 100vh;
+font-family: var(--font-body);
+color: var(--brown);
+/* Verhindert Pull-to-Refresh in der Web-App Ansicht */
+overscroll-behavior-y: contain; 
+}
+.frame {
+max-width: 520px;
+margin: 0 auto;
+background: var(--white);
+border-left: 5px solid var(--brown2);
+border-right: 5px solid var(--brown2);
+box-shadow: 0 0 0 2px var(--brown3), 0 8px 32px rgba(0,0,0,0.6);
+min-height: 100vh;
+}
+header {
+background: var(--red-bg);
+padding: 1.5rem 1.25rem 0.9rem;
+border-bottom: 4px solid var(--brown3);
+text-align: center;
+position: relative;
+}
+h1 {
+font-family: var(--font-display);
+font-weight: 700;
+font-size: clamp(1.7rem, 6vw, 2.5rem);
+color: #ffffff;
+text-transform: uppercase;
+letter-spacing: 0.06em;
+line-height: 1.05;
+text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+h1 span {
+display: block;
+font-size: 0.44em;
+letter-spacing: 0.3em;
+color: rgba(255,255,255,0.75);
+font-weight: 400;
+margin-top: 0.25em;
+}
+.content { padding: 0.75rem 1rem 2rem; }
+.section-head {
+background: var(--red2);
+color: #fff;
+font-family: var(--font-display);
+font-size: 0.58rem;
+font-weight: 600;
+letter-spacing: 0.22em;
+text-transform: uppercase;
+padding: 0.3rem 0.75rem;
+margin: 0.9rem -1rem 0.5rem;
+border-top: 1px solid var(--brown3);
+border-bottom: 1px solid var(--brown3);
+}
+.track-box {
+background: var(--offwhite);
+border: 1.5px solid var(--border);
+padding: 0.7rem 0.85rem;
+margin-bottom: 0.45rem;
+}
+.track-label {
+font-family: var(--font-display);
+font-size: 0.56rem;
+font-weight: 600;
+letter-spacing: 0.14em;
+text-transform: uppercase;
+color: var(--muted);
+margin-bottom: 0.45rem;
+}
+.slider-row { display: flex; align-items: center; gap: 0.75rem; }
+input[type="range"] {
+-webkit-appearance: none;
+flex: 1;
+height: 5px;
+background: var(--border);
+border: 1px solid var(--brown2);
+border-radius: 0;
+cursor: pointer;
+outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: 20px; height: 20px;
+background: var(--red-bg);
+border: 2px solid var(--red2);
+border-radius: 50%;
+cursor: pointer;
+box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+input[type="range"]::-webkit-slider-thumb:hover { background: var(--red2); }
+.slider-val {
+font-family: var(--font-display);
+font-size: 1.5rem;
+font-weight: 700;
+color: var(--brown);
+min-width: 3rem;
+text-align: right;
+}
+.track-hint { font-size: 0.72rem; color: var(--muted); font-style: italic; margin-top: 0.3rem; }
+.stepper { display: flex; align-items: stretch; }
+.step-btn {
+width: 3rem;
+font-size: 1.4rem;
+font-weight: 700;
+background: var(--red-bg);
+border: 1.5px solid var(--red2);
+color: #fff;
+cursor: pointer;
+font-family: var(--font-display);
+transition: background 0.12s;
+flex-shrink: 0;
+}
+.step-btn:hover { background: var(--red2); }
+.step-val {
+flex: 1;
+text-align: center;
+font-family: var(--font-display);
+font-size: 1.5rem;
+font-weight: 700;
+color: var(--brown);
+background: #fff;
+border-top: 1.5px solid var(--border);
+border-bottom: 1.5px solid var(--border);
+padding: 0.38rem 0;
+}
+input[type="hidden"] { display: none; }
+#result { margin-top: 1rem; border: 2px solid var(--brown2); }
+.result-header {
+background: var(--red-bg);
+border-bottom: 3px solid var(--brown3);
+padding: 0.6rem 1rem;
+text-align: center;
+}
+.result-label {
+font-family: var(--font-display);
+font-size: 0.55rem;
+letter-spacing: 0.25em;
+text-transform: uppercase;
+color: rgba(255,255,255,0.75);
+}
+.result-number {
+font-family: var(--font-display);
+font-size: 3.8rem;
+font-weight: 700;
+color: #ffffff;
+line-height: 1;
+text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.result-number.ok { color: #b8f0a0; }
+.result-number.warn { color: #ffbaba; }
+.result-suffix {
+font-family: var(--font-body);
+font-size: 0.85rem;
+font-style: italic;
+color: rgba(255,255,255,0.7);
+margin-top: 0.1rem;
+}
+.result-toggle {
+background: var(--offwhite);
+border-top: 1.5px solid var(--border);
+padding: 0.45rem 1rem;
+display: flex;
+justify-content: space-between;
+align-items: center;
+cursor: pointer;
+font-family: var(--font-display);
+font-size: 0.58rem;
+font-weight: 600;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: var(--muted);
+user-select: none;
+transition: background 0.15s;
+}
+.result-toggle:hover { background: #e8e0d0; color: var(--brown); }
+.breakdown { background: var(--offwhite); padding: 0.75rem 1rem; }
+.brow {
+display: flex;
+justify-content: space-between;
+align-items: baseline;
+padding: 0.2rem 0;
+border-bottom: 1px solid rgba(160,100,60,0.15);
+font-size: 0.8rem;
+}
+.brow:last-child { border-bottom: none; }
+.brow .bkey { color: var(--muted); font-style: italic; }
+.brow .bval { font-family: var(--font-display); font-size: 0.82rem; color: var(--brown); font-weight: 600; }
+.brow.pos .bval { color: var(--positive); }
+.brow.neg .bval { color: var(--negative); }
+.brow.total { border-top: 1.5px solid var(--border); margin-top: 0.2rem; padding-top: 0.35rem; }
+.brow.total .bkey { color: var(--brown); font-style: normal; font-weight: 600; }
+.brow.total .bval { color: var(--brown); }
+.brow.total.pos .bval { color: var(--positive); }
+.brow.total.neg .bval { color: var(--negative); }
+</style>
+</head>
+<body>
+<div class="frame">
+<header>
+<h1>Age of Steam<span>Budget & Auction Planner</span></h1>
+</header>
+<div class="content">
+<div class="section-head">Issue New Shares</div>
+<div class="track-box">
+<div class="track-label">🪙 New Shares This Round (0–5)</div>
+<div class="slider-row">
+<input type="range" id="newSharesSlider" min="0" max="5" value="0" oninput="onNewShares(this.value)">
+<span class="slider-val" id="newSharesDisplay">0</span>
+</div>
+<div class="track-hint" id="newSharesHint">No new shares — capital and track unchanged</div>
+</div>
+
+<div class="section-head">Available Capital</div>
+<div class="track-box">
+<div class="track-label">💰 Cash on Hand ($)</div>
+<div class="stepper">
+<button class="step-btn" onclick="changeCapital(-1)">−</button>
+<div class="step-val" id="capitalDisplay">$10</div>
+<button class="step-btn" onclick="changeCapital(1)">+</button>
+</div>
+<input type="hidden" id="capital" value="10">
+</div>
+
+<div class="section-head">Expenses</div>
+<div class="track-box">
+<div class="track-label">📊 Shares Issued (2–15)</div>
+<div class="slider-row">
+<input type="range" id="sharesOwned" min="2" max="15" value="2" oninput="onManualChange()">
+<span class="slider-val" id="sharesDisplay">2</span>
+</div>
+</div>
+<div class="track-box">
+<div class="track-label">🚂 Loco Level (1–6)</div>
+<div class="slider-row">
+<input type="range" id="locoLevel" min="1" max="6" value="1" oninput="calc()">
+<span class="slider-val" id="locoDisplay">1</span>
+</div>
+</div>
+<div class="track-box">
+<div class="track-label">Tracks</div>
+<div class="stepper">
+<button class="step-btn" onclick="changeBuild(-1)">−</button>
+<div class="step-val" id="buildDisplay">$0</div>
+<button class="step-btn" onclick="changeBuild(1)">+</button>
+</div>
+<div class="track-hint">Expected Build Costs</div>
+<input type="hidden" id="buildCost" value="0">
+</div>
+
+<div class="section-head">Income</div>
+<div class="track-box">
+<div class="track-label">📦 Expected Deliveries ($1–$10)</div>
+<div class="slider-row">
+<input type="range" id="deliveryIncome" min="1" max="10" value="1" oninput="calc()">
+<span class="slider-val" id="deliveryDisplay">$1</span>
+</div>
+</div>
+<div class="track-box">
+<div class="track-label">📈 Income Track (0–30)</div>
+<div class="slider-row">
+<input type="range" id="incomeTrack" min="0" max="30" value="0" oninput="calc()">
+<span class="slider-val" id="incomeDisplay">$0</span>
+</div>
+<div class="track-hint" id="incomeHint">Total income: $0</div>
+</div>
+
+<div id="result">
+<div class="result-header">
+<div class="result-label">Max. Auction Bid</div>
+<div class="result-number" id="auctionLimit">$0</div>
+<div class="result-suffix" id="resultSuffix">Available for bidding</div>
+</div>
+<div class="result-toggle" onclick="toggleBreakdown()">
+<span id="toggleLabel">Show Breakdown</span>
+<span id="toggleArrow">▼</span>
+</div>
+<div class="breakdown" id="breakdown" style="display:none;"></div>
+</div>
+</div>
+</div>
+
+<script>
+const SHARE_VALUE = 5;
+let baseCapital = 10;
+let baseShares = 2;
+let breakdownVisible = false;
+
+function g(id) { return document.getElementById(id); }
+function gi(id) { return parseInt(g(id).value) || 0; }
+function gf(id) { return parseFloat(g(id).value) || 0; }
+
+function toggleBreakdown() {
+breakdownVisible = !breakdownVisible;
+g('breakdown').style.display = breakdownVisible ? 'block' : 'none';
+g('toggleLabel').textContent = breakdownVisible ? 'Hide Breakdown' : 'Show Breakdown';
+g('toggleArrow').textContent = breakdownVisible ? '▲' : '▼';
+}
+
+function changeCapital(delta) {
+const el = g('capital');
+const val = Math.max(0, (parseInt(el.value) || 0) + delta);
+el.value = val;
+g('capitalDisplay').textContent = '$' + val;
+onManualChange();
+}
+
+function changeBuild(delta) {
+const el = g('buildCost');
+const val = Math.max(0, (parseInt(el.value) || 0) + delta);
+el.value = val;
+g('buildDisplay').textContent = '$' + val;
+calc();
+}
+
+function onNewShares(val) {
+val = parseInt(val);
+const newCapital = baseCapital + val * SHARE_VALUE;
+const newShares = Math.min(15, baseShares + val);
+g('capital').value = newCapital;
+g('capitalDisplay').textContent = '$' + newCapital;
+g('sharesOwned').value = newShares;
+g('sharesDisplay').textContent = newShares;
+g('newSharesDisplay').textContent = val;
+g('newSharesHint').textContent = val === 0
+? 'No new shares — capital and track unchanged'
+: '+' + val + ' Share' + (val > 1 ? 's' : '') + ' → Capital: $' + newCapital + ' | Track: ' + newShares + ' shares';
+calc();
+}
+
+function onManualChange() {
+baseCapital = gf('capital');
+baseShares = gi('sharesOwned');
+g('capitalDisplay').textContent = '$' + baseCapital;
+g('sharesDisplay').textContent = baseShares;
+g('newSharesSlider').value = 0;
+g('newSharesDisplay').textContent = '0';
+g('newSharesHint').textContent = 'No new shares — capital and track unchanged';
+calc();
+}
+
+function brow(key, val, cls) {
+return '<div class="brow ' + (cls||'') + '"><span class="bkey">' + key + '</span><span class="bval">' + val + '</span></div>';
+}
+
+function calc() {
+const capital = gf('capital');
+const sharesOwned = gi('sharesOwned');
+const newSharesVal = gi('newSharesSlider');
+const locoLevel = gi('locoLevel');
+const buildCost = gf('buildCost');
+const deliveryIncome = gi('deliveryIncome');
+const incomeTrack = gi('incomeTrack');
+
+g('sharesDisplay').textContent = sharesOwned;
+g('locoDisplay').textContent = locoLevel;
+g('deliveryDisplay').textContent = '$' + deliveryIncome;
+g('incomeDisplay').textContent = '$' + incomeTrack;
+
+const totalIncome = capital + incomeTrack + deliveryIncome;
+const maintenance = locoLevel;
+const sharesPenalty = sharesOwned;
+const totalExpenses = buildCost + maintenance + sharesPenalty;
+const budget = totalIncome - totalExpenses;
+
+g('incomeHint').textContent = 'Income: $' + capital + ' Capital + $' + incomeTrack + ' Track + $' + deliveryIncome + ' Deliveries = $' + totalIncome;
+
+const el = g('auctionLimit');
+el.textContent = '$' + Math.max(0, budget);
+el.className = 'result-number' + (budget >= 0 ? ' ok' : ' warn');
+
+g('resultSuffix').textContent = budget >= 0 ? 'Available for bidding' : 'Insufficient funds! Issue more shares.';
+
+let html = '';
+html += brow('Build Costs', '-$' + buildCost, 'neg');
+html += brow('Loco Maintenance (Level ' + locoLevel + ')', '-$' + maintenance, 'neg');
+html += brow('Shares Penalty (' + sharesOwned + 'x$1)', '-$' + sharesPenalty, 'neg');
+html += brow('Total Expenses', '-$' + totalExpenses, 'total neg');
+if (newSharesVal > 0) html += brow('New Shares (' + newSharesVal + 'x$5)', '+$' + (newSharesVal * SHARE_VALUE), 'pos');
+const baseK = capital - newSharesVal * SHARE_VALUE;
+if (baseK > 0) html += brow('Available Capital', '+$' + baseK, 'pos');
+html += brow('Income Track', '+$' + incomeTrack, 'pos');
+html += brow('Delivery Income', '+$' + deliveryIncome, 'pos');
+html += brow('Total Income', '+$' + totalIncome, 'total pos');
+html += brow('Current Balance', (budget >= 0 ? '+$' : '-$') + Math.abs(budget), budget >= 0 ? 'total pos' : 'total neg');
+
+g('breakdown').innerHTML = html;
+}
+
+calc();
+</script>
+</body>
+</html>
