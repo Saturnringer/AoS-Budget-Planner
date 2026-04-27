@@ -76,9 +76,9 @@
 
             <div class="section-head">Expenses & Income</div>
             <div class="track-box">
-                <div class="track-label">📊 Shares Issued (2–20)</div>
+                <div class="track-label">📊 Shares Issued (2–15)</div>
                 <div class="slider-row">
-                    <input type="range" id="sharesOwned" min="2" max="20" value="2" oninput="onManualChange()">
+                    <input type="range" id="sharesOwned" min="2" max="15" value="2" oninput="onManualChange()">
                     <span class="slider-val" id="sharesDisplay">2</span>
                 </div>
             </div>
@@ -162,7 +162,8 @@
         function onNewShares(val) { 
             val = parseInt(val); 
             const newCapital = baseCapital + (val * SHARE_VALUE); 
-            const newShares = baseShares + val; 
+            // Automatische Berechnung begrenzt auf das Spielmaximum von 15
+            const newShares = Math.min(15, baseShares + val); 
             g('capital').value = newCapital; 
             g('capitalDisplay').textContent = '$' + newCapital; 
             g('sharesOwned').value = newShares; 
